@@ -48,7 +48,6 @@ export default function QuickstartPage() {
   // Generator Form State
   const [productTitle, setProductTitle] = useState("Custom Order / Payment");
   const [amount, setAmount] = useState("15.00");
-  const [settlementToken, setSettlementToken] = useState("USDC");
   const { currency, setCurrency, rates } = useCurrency();
   const [customerEmail, setCustomerEmail] = useState("");
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
@@ -101,7 +100,7 @@ export default function QuickstartPage() {
           order_id: `ORD-${Date.now()}`,
           amount_fiat: parseFloat(amount),
           currency,
-          settlement_token: settlementToken, // USDC or SOL
+          settlement_token: "USDC",
           customer_email: customerEmail || "buyer@example.com",
           description: productTitle
         })
@@ -116,7 +115,7 @@ export default function QuickstartPage() {
 
       if (data.success && data.payment_url) {
         const url = data.payment_url;
-        const embedCode = `<!-- Opayque Pay Button -->\n<a href="${url}" target="_blank" style="background:#a855f7;color:#fff;padding:12px 24px;border-radius:12px;font-weight:bold;text-decoration:none;display:inline-block;">\n Pay ${currency} ${amount} with ${settlementToken}\n</a>`;
+        const embedCode = `<!-- Opayque Pay Button -->\n<a href="${url}" target="_blank" style="background:#a855f7;color:#fff;padding:12px 24px;border-radius:12px;font-weight:bold;text-decoration:none;display:inline-block;">\n Pay ${currency} ${amount} with USDC\n</a>`;
 
         setGeneratedLink(url);
         setGeneratedEmbed(embedCode);
@@ -246,10 +245,9 @@ export default function QuickstartPage() {
                       </div>
                       <div>
                         <label className="block text-[9px] font-black uppercase tracking-[0.25em] text-zinc-400 mb-2">Settlement</label>
-                        <select value={settlementToken} onChange={(e) => setSettlementToken(e.target.value)} className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-xs font-medium text-white transition focus:border-purple-500 focus:outline-none">
-                          <option value="USDC">USDC</option>
-                          <option value="SOL">SOL</option>
-                        </select>
+                        <div className="flex h-[42px] items-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 text-xs font-black uppercase tracking-widest text-emerald-300">
+                          USDC only
+                        </div>
                       </div>
                     </div>
 

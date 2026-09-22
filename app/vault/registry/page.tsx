@@ -439,7 +439,7 @@ export default function RegistryPage() {
                       selectedEndpoint.address
                     )}&name=${encodeURIComponent(selectedEndpoint.name)}&category=${encodeURIComponent(
                       selectedEndpoint.category || "Registry"
-                      )}&mode=${encodeURIComponent(selectedEndpoint.transferMode === "public" ? "public" : "private")}`}
+                      )}&mode=public`}
                     size={200}
                     level="H"
                   />

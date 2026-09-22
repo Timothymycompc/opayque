@@ -8,6 +8,7 @@ import { clearTerminalDeviceCredential, createSessionChallenge, createTerminalSe
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { assertTerminalReady, isRealMerchantId, resolveTerminalContext } from "@/lib/terminal/guards";
 import { useCurrency } from "@/lib/context/CurrencyContext";
+import { triggerFeedback } from "@/lib/feedback";
 import type { TransactionRecord } from "@/types/database";
 import type { TransferMode } from "@/lib/payments/transferMode";
 
@@ -196,6 +197,7 @@ export default function TerminalPage() {
       return;
     }
 
+    triggerFeedback("notification");
     setIsToastVisible(true);
     const fadeTimer = window.setTimeout(() => setIsToastVisible(false), 3500);
     const clearTimer = window.setTimeout(() => setToast(null), 4000);
@@ -570,6 +572,14 @@ export default function TerminalPage() {
   const handleGenerateQR = async () => {
     await generateNewPayment();
   };
+
+  const handleModeChange = useCallback((nextMode: TransferMode) => {
+    setTransferMode(nextMode);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("terminal_transfer_mode", nextMode);
+    }
+    triggerFeedback("mode");
+  }, []);
 
   const handleActivityClick = (transaction: any) => {
     const transactionAmount = Number(transaction.amount);

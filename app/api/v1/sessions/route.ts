@@ -33,6 +33,7 @@ function getRequestOrigin(request: Request): string {
     KES: 129,
     ZAR: 18.2,
     INR: 83,
+    PLN: 4.0,
     CAD: 1.36,
     AUD: 1.52,
   };

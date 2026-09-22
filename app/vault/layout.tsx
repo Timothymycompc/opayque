@@ -9,6 +9,7 @@ import { clearActiveSession } from "@/lib/crypto/session";
 import { bindAuthenticatedMerchantSession } from "@/lib/crypto/session";
 import { clearMerchantProfileCache } from "@/lib/client/merchantProfileCache";
 import { reauthenticateForSensitiveAction } from "@/lib/client/reauthenticate";
+import { triggerFeedback } from "@/lib/feedback";
 import type { TransferMode } from "@/lib/payments/transferMode";
 import WalletConnectPanel from "@/components/wallet/WalletConnectPanel";
 import {
@@ -17,12 +18,12 @@ import {
   LucideCamera,
   LucideShieldCheck,
   LucideShieldAlert,
-  LucidePencilLine,
   Copy,
   Check,
   ShieldCheck,
   Lock,
   LogOut,
+  UserCircle2,
 } from "lucide-react";
 
 export default function VaultLayout({ children }: { children: React.ReactNode }) {
@@ -348,7 +349,7 @@ export default function VaultLayout({ children }: { children: React.ReactNode })
                   className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 hover:shadow-[0_0_18px_rgba(168,85,247,0.35)]"
                   aria-label="Edit merchant profile"
                 >
-                  <LucidePencilLine size={16} />
+                  <UserCircle2 size={16} />
                 </button>
               </div>
 
@@ -521,7 +522,10 @@ export default function VaultLayout({ children }: { children: React.ReactNode })
                           name="vault-default-transfer-mode"
                           value={mode}
                           checked={defaultTransferMode === mode}
-                          onChange={() => setDefaultTransferMode(mode)}
+                          onChange={() => {
+                            setDefaultTransferMode(mode);
+                            triggerFeedback("mode");
+                          }}
                           className="sr-only"
                         />
                         <span className="flex items-center justify-between text-sm font-bold text-white">

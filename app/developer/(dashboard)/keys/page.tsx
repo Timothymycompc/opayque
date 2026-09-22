@@ -10,6 +10,7 @@ import { bindAuthenticatedMerchantSession } from "@/lib/crypto/session";
 import { clearMerchantProfileCache } from "@/lib/client/merchantProfileCache";
 import { reauthenticateForSensitiveAction } from "@/lib/client/reauthenticate";
 import { writeSandboxApiKey } from "@/lib/client/sandboxApiKey";
+import { triggerFeedback } from "@/lib/feedback";
 import type { TransferMode } from "@/lib/payments/transferMode";
 import SettlementWalletSection from "@/components/wallet/SettlementWalletSection";
 import {
@@ -244,6 +245,12 @@ export default function ApiKeysPage() {
 
     void loadData();
   }, [supabase]);
+
+  useEffect(() => {
+    if (profileMessage || profileError || notificationMessage || notificationError) {
+      triggerFeedback("notification");
+    }
+  }, [notificationError, notificationMessage, profileError, profileMessage]);
 
   const primaryEmailAvailable = Boolean((merchantEmail || "").trim());
 
@@ -676,7 +683,10 @@ export default function ApiKeysPage() {
                         name="default-transfer-mode"
                         value={mode}
                         checked={defaultTransferMode === mode}
-                        onChange={() => setDefaultTransferMode(mode)}
+                        onChange={() => {
+                          setDefaultTransferMode(mode);
+                          triggerFeedback("mode");
+                        }}
                         className="sr-only"
                       />
                       <span className="flex items-center justify-between text-sm font-bold text-white">
