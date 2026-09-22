@@ -670,7 +670,7 @@ export default function ApiKeysPage() {
                 <legend className="text-xs uppercase tracking-[0.2em] text-zinc-400">Default transfer mode</legend>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {(["private", "public"] as const).map((mode) => (
-                    <label key={mode} className={`cursor-pointer rounded-xl border p-4 transition ${defaultTransferMode === mode ? "border-purple-400/70 bg-purple-500/10" : "border-white/10 bg-black/20 hover:border-white/20"}`}>
+                    <label key={mode} className={`cursor-pointer rounded-xl border p-4 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out ${defaultTransferMode === mode ? "-translate-y-1 scale-[1.02] border-purple-400/70 bg-purple-500/10 shadow-[0_12px_30px_rgba(168,85,247,0.18)]" : "border-white/10 bg-black/20 hover:-translate-y-0.5 hover:border-white/20"}`}>
                       <input
                         type="radio"
                         name="default-transfer-mode"

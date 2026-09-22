@@ -14,6 +14,7 @@ import {
   LucideGlobe2,
   LucideX,
   LucidePrinter,
+  LucideLoader2,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -271,12 +272,23 @@ export default function RegistryPage() {
 
   if (isInitializing || !vaultReady) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center bg-black text-white">
-        <div className="text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-zinc-500">
-            Vault Authorization Required
-          </p>
-          <h2 className="mt-4 text-2xl font-black">Checking merchant access...</h2>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
+        <div className="absolute inset-0 z-0 bg-purple-600/15 animate-pulse" />
+        <div className="relative z-20 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
+          <div className="relative mb-8 flex h-24 w-24 items-center justify-center rounded-full border border-purple-500/30">
+            <div className="absolute inset-0 rounded-full border-2 border-purple-500 animate-ping opacity-20" />
+            <div className="absolute inset-0 rounded-full border-t-2 border-purple-500 animate-spin duration-700" />
+            <LucideShieldCheck size={32} className="text-purple-500" />
+          </div>
+          <h2 className="mb-2 text-3xl font-black italic uppercase tracking-tighter">
+            Merchant Authorization
+          </h2>
+          <div className="flex items-center gap-3 text-zinc-500">
+            <LucideLoader2 size={14} className="animate-spin" />
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em]">
+              Verifying Wallet Identity...
+            </p>
+          </div>
         </div>
       </div>
     );

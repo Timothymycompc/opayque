@@ -124,7 +124,13 @@ export default function EndpointRegistry({ onSave, existingEndpoints }: Endpoint
 
         <div className="space-y-2">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Payment privacy</p>
-          <div className="flex bg-black/50 p-1.5 rounded-2xl border border-white/5" role="group" aria-label="Payment privacy">
+          <div className="relative flex bg-black/50 p-1.5 rounded-2xl border border-white/5" role="group" aria-label="Payment privacy">
+            <div
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-y-1.5 left-1.5 w-[calc(50%-0.375rem)] rounded-xl bg-purple-600 shadow-[0_0_22px_rgba(168,85,247,0.35)] transition-transform duration-300 ease-out ${
+                transferMode === "public" ? "translate-x-[calc(100%+0.75rem)]" : "translate-x-0"
+              }`}
+            />
             {[
               { label: "Private", value: "private" as const, icon: <LucideShieldCheck size={13} /> },
               { label: "Standard", value: "public" as const, icon: <LucideGlobe2 size={13} /> },
@@ -133,9 +139,9 @@ export default function EndpointRegistry({ onSave, existingEndpoints }: Endpoint
                 key={item.value}
                 type="button"
                 onClick={() => setTransferMode(item.value)}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-[color,transform] duration-300 ${
                   transferMode === item.value
-                    ? item.value === "private" ? "bg-purple-600 text-white shadow-lg" : "bg-black text-white shadow-lg"
+                    ? "text-white scale-[1.02]"
                     : "text-zinc-500 hover:text-white"
                 }`}
                 aria-pressed={transferMode === item.value}

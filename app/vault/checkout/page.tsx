@@ -40,6 +40,7 @@ function CheckoutContent() {
         endpointCategory={category}
         allowCustomAmount={safeAmount <= 0}
         transferMode={transferMode}
+        allowDeviceHandoff={false}
       />
     </main>
   );

@@ -127,7 +127,7 @@ export default function OpayqueCheckout({
             </div>
             <div className="flex justify-between items-center pt-1">
               <span className="text-[10px] text-gray-500 tracking-widest">AMOUNT_DUE</span>
-              <div className="text-right">
+              <div className="text-center">
                 <span className="text-lg text-[#00ffcc] font-light block">{amountUsdc.toFixed(2)} USDC</span>
                 {currency !== 'USD' && (
                   <span className="text-[10px] text-gray-400 tracking-wider">≈ {fiatEquivalent.formatted}</span>
