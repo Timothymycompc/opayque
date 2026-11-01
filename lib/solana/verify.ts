@@ -228,7 +228,7 @@ export async function verifySolanaTransaction({
     let tx: Awaited<ReturnType<Connection['getParsedTransaction']>> = null;
     for (let attempt = 0; attempt < 8; attempt += 1) {
       tx = await connection.getParsedTransaction(signature, {
-        maxSupportedTransactionVersion: 0,
+        maxSupportedTransactionVersion: 1,
         commitment: 'finalized',
       });
       if (tx) break;

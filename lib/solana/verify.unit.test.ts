@@ -5,7 +5,8 @@ import { verifySolanaTransaction } from "./verify";
 afterEach(() => vi.restoreAllMocks());
 
 describe("verifySolanaTransaction", () => {
-  it("fetches and verifies a v0 parsed token transfer", async () => {
+  // Wallets and SDKs now send version 1 transactions too; both must verify.
+  it.each([0, 1])("fetches and verifies a version %s parsed token transfer", async (version) => {
     const merchant = Keypair.generate().publicKey;
     const sender = Keypair.generate().publicKey;
     const mint = Keypair.generate().publicKey;
@@ -17,8 +18,8 @@ describe("verifySolanaTransaction", () => {
     const sourceAddress = sourceTokenAccount.toBase58();
     const destinationAddress = destinationTokenAccount.toBase58();
 
-    const parsedV0Transaction = {
-      version: 0,
+    const parsedTransaction = {
+      version,
       slot: 123,
       blockTime: 456,
       meta: {
@@ -54,7 +55,7 @@ describe("verifySolanaTransaction", () => {
       },
     };
     const getParsedTransaction = vi.spyOn(Connection.prototype, "getParsedTransaction")
-      .mockResolvedValue(parsedV0Transaction as any);
+      .mockResolvedValue(parsedTransaction as any);
 
     const result = await verifySolanaTransaction({
       signature: "versioned-signature",
@@ -68,7 +69,7 @@ describe("verifySolanaTransaction", () => {
 
     expect(result).toMatchObject({ verified: true, status: "success", actualTransferredBaseUnits: 1_000_000n });
     expect(getParsedTransaction).toHaveBeenCalledWith("versioned-signature", {
-      maxSupportedTransactionVersion: 0,
+      maxSupportedTransactionVersion: 1,
       commitment: "finalized",
     });
   });
