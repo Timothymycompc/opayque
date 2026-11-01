@@ -299,7 +299,7 @@ export default function VaultLayout({ children }: { children: React.ReactNode })
     router.push("/login?next=%2Fvault%2Fregistry");
   };
 
-  const displayVaultId = settlementWallet.trim() || publicKey?.toBase58() || "";
+  const displayVaultId = settlementWallet.trim();
   const addressContent = displayVaultId
     ? `${displayVaultId.slice(0, 4)}...${displayVaultId.slice(-4)}`
     : isHydratingMerchant

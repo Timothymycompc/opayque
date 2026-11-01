@@ -18,8 +18,11 @@ export async function GET(request: Request) {
     .select("id, merchant_id, terminal_id, checkout_session_id, amount, amount_base_units, mint, token_symbol, sender_address, recipient_address, signature, status, memo, environment, transfer_mode, failed_reason, confirmed_at, reconciliation_status, created_at, updated_at")
     .eq("merchant_id", merchant.id)
     .order("created_at", { ascending: false })
-    .range(from, to);
-  if (error) return NextResponse.json({ error: "Unable to load payment activity" }, { status: 500 });
+    .range(from, to + 1);
+  if (error) {
+    console.error("Merchant payment activity query failed", error);
+    return NextResponse.json({ error: "Unable to load payment activity. Please try again." }, { status: 500 });
+  }
 
   const rows = data ?? [];
   const terminalIds = [...new Set(rows.map((row: { terminal_id: string | null }) => row.terminal_id).filter(Boolean))];

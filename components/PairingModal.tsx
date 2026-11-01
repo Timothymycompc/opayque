@@ -22,6 +22,7 @@ interface PairingModalProps {
   onTerminalNameCommit?: (value: string) => void;
   isRefreshingCode?: boolean;
   pairingState?: "idle" | "waiting" | "used";
+  pairingError?: string | null;
 }
 
 export default function PairingModal({
@@ -35,6 +36,7 @@ export default function PairingModal({
   onTerminalNameCommit,
   isRefreshingCode = false,
   pairingState = "idle",
+  pairingError = null,
 }: PairingModalProps) {
   const [copied, setCopied] = useState(false);
   const [isSuccessFading, setIsSuccessFading] = useState(false);
@@ -178,6 +180,12 @@ export default function PairingModal({
               <LucideClock3 size={14} /> Valid for: {timeLeft}
             </div>
           </div>
+
+          {pairingError && (
+            <p role="alert" className="mt-4 rounded-md border border-red-500/30 bg-red-950/40 px-3 py-2 text-left text-sm text-red-200">
+              {pairingError}
+            </p>
+          )}
 
           {pairingState === "waiting" ? (
             <div className="mt-4 rounded-md bg-yellow-900/30 px-3 py-2 text-center text-yellow-300 text-sm font-bold">

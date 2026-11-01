@@ -206,6 +206,7 @@ export default function TerminalManager({
   const [newTerminalLabel, setNewTerminalLabel] = useState("");
   const [pendingTerminal, setPendingTerminal] = useState<Terminal | null>(null);
   const [pairingState, setPairingState] = useState<"idle" | "waiting" | "used">("idle");
+  const [pairingError, setPairingError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   
   // Balances and Checkout State
@@ -339,89 +340,80 @@ export default function TerminalManager({
     async (labelOverride?: string) => {
       if (pairingRequestRef.current) return;
       pairingRequestRef.current = true;
-
-      let merchantResponse: Response;
-      try {
-        merchantResponse = await fetch("/api/v1/merchant", {
-          credentials: "include",
-        });
-      } catch (error) {
-        console.error("Failed to resolve authenticated merchant", error);
-        setToast("Unable to verify the merchant session. Please try again.");
-        setTimeout(() => setToast(null), 3000);
-        pairingRequestRef.current = false;
-        return;
-      }
-      const merchantPayload = await merchantResponse.json().catch(() => null);
-      const merchant = merchantPayload?.merchant;
-      const merchantIdForPairing = typeof merchant?.id === "string" ? merchant.id : null;
-      const walletAddressForPairing =
-        (typeof merchant?.settlement_wallet_address === "string" && merchant.settlement_wallet_address.trim()) ||
-        (typeof merchant?.wallet_address === "string" && merchant.wallet_address.trim()) ||
-        getActiveSession()?.walletAddress?.trim() ||
-        null;
-
-      if (!merchantResponse.ok || !merchantIdForPairing) {
-        setToast(merchantPayload?.error || "Merchant profile not found. Complete setup and sign in again.");
-        setTimeout(() => setToast(null), 3000);
-        pairingRequestRef.current = false;
-        return;
-      }
-
-      if (!isValidUuid(merchantIdForPairing)) {
-        pairingRequestRef.current = false;
-        setToast("Invalid merchant context. Please re-authorize.");
-        setTimeout(() => setToast(null), 3000);
-        return;
-      }
-
-      setResolvedMerchantId(merchantIdForPairing);
       setIsRefreshingCode(true);
+      setPairingError(null);
       setErrorState(null);
-
+      const requestController = new AbortController();
+      const requestTimeout = window.setTimeout(() => requestController.abort(), 20000);
       try {
+        const merchantResponse = await fetch("/api/v1/merchant", {
+          credentials: "include",
+          cache: "no-store",
+          signal: requestController.signal,
+        });
+        const merchantPayload = await merchantResponse.json().catch(() => null);
+        if (!merchantResponse.ok) {
+          throw new Error(merchantResponse.status === 401
+            ? "Your sign-in has expired. Sign in again to generate a pairing code."
+            : merchantPayload?.error || "Unable to verify the merchant session.");
+        }
+
+        const merchant = merchantPayload?.merchant;
+        const merchantIdForPairing = typeof merchant?.id === "string" ? merchant.id : null;
+        if (!merchantIdForPairing) {
+          throw new Error("Merchant profile not found. Complete setup and sign in again.");
+        }
+        if (!isValidUuid(merchantIdForPairing)) {
+          throw new Error("Invalid merchant context. Please re-authorize.");
+        }
+
+        setResolvedMerchantId(merchantIdForPairing);
         const terminalLabel = typeof labelOverride === "string"
           ? labelOverride.trim()
           : newTerminalLabel.trim();
 
-        // Call API to create pairing code - this validates merchant and patches wallet_address
         const response = await fetch("/api/terminal/pairing", {
           method: "POST",
           credentials: "include",
           cache: "no-store",
           headers: { "Content-Type": "application/json" },
+          signal: requestController.signal,
           body: JSON.stringify({
             action: "create",
             merchant_id: merchantIdForPairing,
-            wallet_address: walletAddressForPairing,
             terminal_label: terminalLabel,
-            generated_at: Date.now(),
           }),
         });
 
-        const result = await response.json();
+        const result = await response.json().catch(() => null);
 
         if (!response.ok || !result.success) {
-          throw new Error(result.error || "Failed to create pairing code");
+          throw new Error(result?.error || `Pairing request failed (${response.status}).`);
         }
 
-        // Only reveal the code after server validation succeeds
         setAuthCode(result.code);
         const expiresAtMs = new Date(result.expiresAt).getTime();
         setPairingExpiresAt(expiresAtMs);
         setPairingState("waiting");
+        setPairingError(null);
       } catch (err: any) {
         console.error("Failed to generate pairing code:", err);
-        setToast(err.message || "Failed to create code. Try again.");
+        const message = err?.name === "AbortError"
+          ? "Pairing request timed out. Check your connection and try again."
+          : err instanceof Error ? err.message : "Failed to create pairing code. Try again.";
+        setPairingError(message);
+        setPairingState("idle");
+        setAuthCode("");
+        setTimeLeft("FAILED");
+        setToast(message);
         setTimeout(() => setToast(null), 3000);
-        setAuthCode("ERROR");
-        setTimeLeft("00M 00S");
       } finally {
+        window.clearTimeout(requestTimeout);
         setIsRefreshingCode(false);
         pairingRequestRef.current = false;
       }
     },
-    [newTerminalLabel, resolvedMerchantId]
+    [newTerminalLabel]
   );
 
   // TIMER HANDLER
@@ -1060,6 +1052,7 @@ export default function TerminalManager({
     const defaultTerminalLabel = "Fleet Terminal";
     setNewTerminalLabel(defaultTerminalLabel);
     setAuthCode("");
+    setPairingError(null);
     setPairingState("waiting");
     setPairingExpiresAt(null);
     setTimeLeft("GENERATING...");
@@ -1227,6 +1220,7 @@ export default function TerminalManager({
         }}
         isRefreshingCode={isRefreshingCode}
         pairingState={pairingState}
+        pairingError={pairingError}
       />
       {toast && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/10 px-6 py-3 rounded-full text-[10px] font-bold uppercase z-50 shadow-lg transition-opacity duration-300">

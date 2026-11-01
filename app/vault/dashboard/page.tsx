@@ -1,6 +1,5 @@
 "use client";
 
-import { useWallet } from '@solana/wallet-adapter-react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getAuthenticatedMerchantId } from '@/lib/auth/authenticatedMerchant';
@@ -25,10 +24,11 @@ const currencySymbols: Record<string, string> = {
 };
 
 export default function VaultDashboard() {
-  const { publicKey, connected } = useWallet();
   const { currency, setCurrency, rates, convert } = useCurrency();
   const [volumeView, setVolumeView] = useState<"private" | "standard" | "total">("private");
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [activityError, setActivityError] = useState<string | null>(null);
+  const [settlementWalletAddress, setSettlementWalletAddress] = useState<string | null>(null);
   const [flushLoading, setFlushLoading] = useState(false);
   const [flushMessage, setFlushMessage] = useState<string | null>(null);
   const [flushError, setFlushError] = useState<string | null>(null);
@@ -85,14 +85,20 @@ export default function VaultDashboard() {
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     try {
-      const seedTransactions = async (merchantId: string) => {
+      const seedTransactions = async () => {
         const allRows: any[] = [];
         let page = 1;
         let hasMore = true;
         while (hasMore) {
           const response = await fetch(`/api/merchant/activity?page=${page}&pageSize=100`, { credentials: 'include', cache: 'no-store' });
           const payload = await response.json().catch(() => ({}));
-          if (!response.ok || !Array.isArray(payload.data)) break;
+          if (!response.ok) {
+            const message = response.status === 401
+              ? "Your session has expired. Sign in again to view recent activity."
+              : payload?.error || "Unable to load payment activity. Please try again.";
+            throw new Error(message);
+          }
+          if (!Array.isArray(payload.data)) throw new Error("The activity response was invalid. Please try again.");
           allRows.push(...payload.data);
           hasMore = payload.hasMore === true;
           page += 1;
@@ -120,32 +126,33 @@ export default function VaultDashboard() {
 
       let channel: any = null;
       void (async () => {
-        const merchantId = await getAuthenticatedMerchantId();
-        if (!merchantId) {
-          setMerchantReady(false);
-          setTransactions([]);
-          return;
-        }
-        setMerchantReady(true);
+        try {
+          const merchantResponse = await fetch("/api/v1/merchant", { credentials: "include", cache: "no-store" });
+          const merchantPayload = await merchantResponse.json().catch(() => null);
+          if (!merchantResponse.ok) {
+            throw new Error(merchantResponse.status === 401
+              ? "Your session has expired. Sign in again to view recent activity."
+              : merchantPayload?.error || "Unable to verify your merchant account.");
+          }
 
-        const { data: merchant } = await supabase
-          .from("merchants")
-          .select("refund_wallet_address, settlement_wallet_address, wallet_address")
-          .eq("id", merchantId)
-          .maybeSingle();
-        // Refund signer resolution: dedicated refund wallet, settlement wallet, then connected vault authority.
-        setRefundWallet(
-          merchant?.refund_wallet_address ||
-          merchant?.settlement_wallet_address ||
-          merchant?.wallet_address ||
-          publicKey?.toBase58() ||
-          null
-        );
+          const merchant = merchantPayload?.merchant;
+          const merchantId = typeof merchant?.id === "string" ? merchant.id : null;
+          if (!merchantId) throw new Error("No merchant profile is linked to this signed-in account.");
 
-        await seedTransactions(merchantId);
-        channel = supabase
-          .channel(`vault-dashboard-transactions-${merchantId}`)
-        .on(
+          setMerchantReady(true);
+          setActivityError(null);
+          setSettlementWalletAddress(
+            typeof merchant.settlement_wallet_address === "string" && merchant.settlement_wallet_address.trim()
+              ? merchant.settlement_wallet_address.trim()
+              : null
+          );
+          // Refund signer resolution: dedicated refund wallet, settlement wallet, then legacy wallet.
+          setRefundWallet(merchant.refund_wallet_address || merchant.settlement_wallet_address || merchant.wallet_address || null);
+
+          await seedTransactions();
+          channel = supabase
+            .channel(`vault-dashboard-transactions-${merchantId}`)
+            .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'payment_ledger', filter: `merchant_id=eq.${merchantId}` },
           (payload) => {
@@ -163,8 +170,8 @@ export default function VaultDashboard() {
             };
             persistTransactions((current) => [nextRow, ...current]);
           }
-        )
-        .on(
+            )
+            .on(
           'postgres_changes',
           { event: 'UPDATE', schema: 'public', table: 'payment_ledger', filter: `merchant_id=eq.${merchantId}` },
           (payload) => {
@@ -190,8 +197,12 @@ export default function VaultDashboard() {
               return [nextRow, ...current];
             });
           }
-        )
-          .subscribe();
+            )
+            .subscribe();
+        } catch (error) {
+          setTransactions([]);
+          setActivityError(error instanceof Error ? error.message : "Unable to load recent activity. Please try again.");
+        }
       })();
 
       return () => {
@@ -199,6 +210,7 @@ export default function VaultDashboard() {
       };
     } catch (error) {
       console.warn('Vault dashboard Supabase sync failed', error);
+      setActivityError("Unable to load recent activity. Please try again.");
     }
   }, []);
 
@@ -405,9 +417,11 @@ export default function VaultDashboard() {
       <div
         className="block w-full p-10 rounded-[3rem] bg-zinc-900 border border-white/10 relative overflow-hidden text-left"
       >
-         {publicKey && (
+         {merchantReady && (
            <div className="absolute top-6 right-10 text-[9px] font-mono text-zinc-600 uppercase tracking-widest">
-             Vault ID: {publicKey.toBase58().slice(0, 6)}...{publicKey.toBase58().slice(-4)}
+             Vault ID: {settlementWalletAddress
+               ? `${settlementWalletAddress.slice(0, 6)}...${settlementWalletAddress.slice(-4)}`
+               : "No settlement wallet"}
            </div>
          )}
 
@@ -534,7 +548,13 @@ export default function VaultDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredTransactions.length > 0 ? (
+              {activityError ? (
+                <tr>
+                  <td colSpan={5} role="alert" className="py-20 text-center text-red-300">
+                    {activityError}
+                  </td>
+                </tr>
+              ) : filteredTransactions.length > 0 ? (
                 filteredTransactions.map((tx, i) => {
                   const isSettled = ['SETTLED', 'SHIELDED', 'SHIELDED_CONFIRMED', 'CONFIRMED', 'SUCCESS'].includes(
                     String(tx.status ?? '').toUpperCase()

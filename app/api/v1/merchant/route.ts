@@ -74,6 +74,7 @@ export async function GET() {
         .from("merchants")
         .select(MERCHANT_SELECT)
         .eq("email", user.email)
+        .is("auth_user_id", null)
         .maybeSingle();
 
       if (fallback.error) {
