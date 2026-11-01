@@ -10,7 +10,9 @@ import {
   LucideLoader2, 
   LucideLock, 
   LucideMonitorSmartphone, 
-  LucideCode2 
+  LucideCode2,
+  LucideArrowUpRight,
+  LucideExternalLink,
 } from "lucide-react";
 import { clearActiveSession, createSessionChallenge, createTerminalSession, getActiveSession, setActiveSession } from "@/lib/crypto/session";
 import { configureConfidentialAccount } from "@/lib/solana/confidential";
@@ -204,13 +206,13 @@ export default function UnifiedLanding() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-black text-white selection:bg-purple-500/30">
       {isAuthorizing && (
-        <div className="absolute inset-0 bg-purple-600/15 animate-pulse duration-400 z-0" />
+        <div className="absolute inset-0 z-0 animate-pulse bg-purple-600/15 duration-400" />
       )}
 
       {isAuthorizing ? (
-        <div className="z-20 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
+        <div className="relative z-20 flex min-h-screen flex-col items-center justify-center px-6 text-center animate-in fade-in zoom-in duration-500">
           <div className="w-24 h-24 rounded-full border border-purple-500/30 flex items-center justify-center mb-8 relative">
             <div className="absolute inset-0 rounded-full border-2 border-purple-500 animate-ping opacity-20" />
             <div className="absolute inset-0 rounded-full border-t-2 border-purple-500 animate-spin duration-700" />
@@ -226,101 +228,152 @@ export default function UnifiedLanding() {
           ) : null}
         </div>
       ) : (
-        <div className="z-10 w-full max-w-4xl animate-in fade-in duration-700">
-          <header className="text-center mb-16">
-            <h1 className="text-6xl font-black italic uppercase tracking-tighter mb-2">Opayque</h1>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-[0.5em] font-bold">
-              Private-Payment POS Infrastructure
-            </p>
-          </header>
+        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-5 sm:px-8 lg:px-12">
+          <header className="flex h-20 items-center justify-between border-b border-white/10">
+            <Link href="/" className="flex items-center gap-3" aria-label="Opayque home">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-300/30 bg-purple-400/10 text-xs font-black text-purple-200">O</span>
+              <span className="text-sm font-extrabold uppercase text-white">Opayque</span>
+            </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* CARD 1: MERCHANT VAULT */}
-            <div className="group relative bg-zinc-900 border border-white/5 p-10 rounded-[3.5rem] transition-all hover:border-purple-500/30 shadow-2xl flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl font-black italic uppercase">Merchant Vault</h2>
-                  <LucideLock className="text-zinc-700" size={20} />
-                </div>
-                <p className="text-zinc-500 text-sm mb-12 h-12">
-                  Manage staff, pair terminals, and audit transactions. Private payments require the MagicBlock path.
-                </p>
-              </div>
-
+            <nav className="flex items-center gap-4 sm:gap-7" aria-label="Main navigation">
+              <Link href="/developer/docs" className="hidden text-sm text-zinc-400 transition hover:text-white sm:inline">Docs</Link>
+              <Link
+                href="https://github.com/EmperorBloyan/opayque"
+                target="_blank"
+                rel="noreferrer"
+                className="hidden items-center gap-1.5 text-sm text-zinc-400 transition hover:text-white md:inline-flex"
+              >
+                GitHub <LucideExternalLink size={13} aria-hidden="true" />
+              </Link>
               <button
                 type="button"
                 onClick={() => void handleAccessVault()}
-                className="w-full py-5 bg-purple-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-purple-500 transition-all active:scale-[0.98]"
+                className="inline-flex min-h-10 items-center gap-2 rounded-md border border-white/15 px-3 text-xs font-bold text-white transition hover:border-purple-300/50 hover:bg-white/[0.04] sm:px-4 sm:text-sm"
               >
-                Access Vault
+                Merchant sign in <LucideArrowUpRight size={14} aria-hidden="true" />
               </button>
-              {authError ? <p className="mt-4 text-sm text-amber-400">{authError}</p> : null}
-            </div>
+            </nav>
+          </header>
 
-            {/* CARD 2: STAFF TERMINAL */}
-            <Link
-              href="/terminal"
-              className="group relative bg-zinc-900/50 border border-white/5 p-10 rounded-[3.5rem] transition-all hover:bg-zinc-900 hover:border-white/10 shadow-2xl flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl font-black italic uppercase text-zinc-400 group-hover:text-white transition-colors">
-                    Staff Terminal
-                  </h2>
-                  <LucideMonitorSmartphone className="text-zinc-700" size={20} />
-                </div>
-                <p className="text-zinc-500 text-sm mb-12 h-12">
-                  Launch the hardware interface for point-of-sale operations.
+          <main className="flex-1">
+            <section className="grid items-center gap-12 py-16 sm:py-20 lg:min-h-[590px] lg:grid-cols-[1.08fr_0.92fr] lg:gap-16 lg:py-24" aria-labelledby="hero-title">
+              <div className="animate-in fade-in slide-in-from-bottom-3 duration-700">
+                <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-purple-300/25 bg-purple-400/[0.07] px-3 py-2 text-[10px] font-bold uppercase text-purple-200 sm:text-xs">
+                  <LucideShieldCheck size={14} aria-hidden="true" />
+                  SOLANA-NATIVE MERCHANT INFRASTRUCTURE
                 </p>
-              </div>
-              <span className="block w-full py-5 bg-zinc-800 text-white text-center rounded-2xl font-black uppercase text-xs tracking-widest group-hover:bg-zinc-700 transition-all">
-                Open Terminal
-              </span>
-            </Link>
-
-            {/* CARD 3: API & DEVELOPERS (UNIFIED DESIGN) */}
-            <div className="group relative bg-zinc-900/50 border border-white/5 p-10 rounded-[3.5rem] transition-all hover:bg-zinc-900 hover:border-white/10 shadow-2xl flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl font-black italic uppercase text-zinc-400 group-hover:text-white transition-colors">
-                    API & Developers
-                  </h2>
-                  <LucideCode2 className="text-zinc-700" size={20} />
-                </div>
-                <p className="text-zinc-500 text-sm mb-12 h-12">
-                  Manage API keys, configure live webhooks, and integrate custom payment platforms.
+                <h1 id="hero-title" className="max-w-3xl text-5xl font-black leading-[1.04] text-white sm:text-6xl lg:text-7xl">
+                  Non-Custodial Payment Execution Layer for Modern Commerce
+                </h1>
+                <p className="mt-7 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg sm:leading-8">
+                  Opayque powers real-time Point-of-Sale checkout, cross-device session orchestration, and multi-branch ledger reconciliation—enabling physical and digital merchants to accept on-chain USDC directly into self-custody with zero custodial licensing overhead.
                 </p>
+
+                <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link
+                    href="/terminal"
+                    className="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg bg-purple-500 px-6 text-sm font-bold text-white transition hover:bg-purple-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300"
+                  >
+                    <LucideMonitorSmartphone size={17} aria-hidden="true" />
+                    Launch Terminal Demo
+                    <LucideArrowUpRight size={16} aria-hidden="true" />
+                  </Link>
+                  <Link
+                    href="https://github.com/EmperorBloyan/opayque#architecture"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg border border-white/15 px-6 text-sm font-semibold text-zinc-200 transition hover:border-white/30 hover:bg-white/[0.04]"
+                  >
+                    <LucideCode2 size={17} aria-hidden="true" />
+                    Read Architecture Specs
+                    <LucideExternalLink size={14} aria-hidden="true" />
+                  </Link>
+                </div>
+                {authError ? <p role="alert" className="mt-4 text-sm text-amber-300">{authError}</p> : null}
+                <p className="mt-6 text-xs text-zinc-600">Merchant operations, settled directly to self-custody on Solana.</p>
               </div>
 
-              <div className="flex gap-3">
-                <Link
-                  href="/developer/overview"
-                  onClick={(event) => void handleDeveloperDashboard(event)}
-                  className="flex-1"
-                >
-                  <button className="w-full py-5 bg-zinc-800 text-white text-center rounded-2xl font-black uppercase text-xs tracking-widest group-hover:bg-zinc-700 transition-all">
-                    Dashboard
-                  </button>
-                </Link>
-                <Link href="/developer/docs" className="flex-1">
-                  <button className="w-full py-5 border border-white/10 text-zinc-300 text-center rounded-2xl font-black uppercase text-xs tracking-widest hover:border-white/20 hover:text-white transition-all">
-                    Docs
-                  </button>
-                </Link>
+              <div className="relative border-y border-white/10 py-8 sm:py-10 lg:ml-4" aria-label="Payment execution flow">
+                <div className="mb-8 flex items-center justify-between gap-4">
+                  <p className="text-[10px] font-bold uppercase text-zinc-500 sm:text-xs">Payment execution flow</p>
+                  <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-emerald-300 sm:text-xs">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Non-custodial settlement
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b border-white/10 py-5 sm:grid-cols-[64px_1fr_auto] sm:gap-5">
+                  <span className="font-mono text-sm text-zinc-600">01</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white sm:text-base">Checkout session</p>
+                    <p className="mt-1 text-xs text-zinc-500">POS, mobile, or web terminal</p>
+                  </div>
+                  <span className="rounded border border-white/10 px-2 py-1 font-mono text-[10px] text-zinc-400">CREATED</span>
+                </div>
+
+                <div className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b border-white/10 py-5 sm:grid-cols-[64px_1fr_auto] sm:gap-5">
+                  <span className="font-mono text-sm text-zinc-600">02</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white sm:text-base">USDC payment</p>
+                    <p className="mt-1 text-xs text-zinc-500">Merchant-scoped session tracking</p>
+                  </div>
+                  <span className="rounded border border-purple-300/20 bg-purple-400/[0.06] px-2 py-1 font-mono text-[10px] text-purple-200">SUBMITTED</span>
+                </div>
+
+                <div className="grid grid-cols-[52px_1fr_auto] items-center gap-4 py-5 sm:grid-cols-[64px_1fr_auto] sm:gap-5">
+                  <span className="font-mono text-sm text-zinc-600">03</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white sm:text-base">Direct settlement</p>
+                    <p className="mt-1 text-xs text-zinc-500">Funds remain in merchant custody</p>
+                  </div>
+                  <span className="rounded border border-emerald-300/20 bg-emerald-400/[0.06] px-2 py-1 font-mono text-[10px] text-emerald-200">CONFIRMED</span>
+                </div>
+
+                <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-5 text-xs">
+                  <span className="font-mono text-zinc-500">SOLANA / USDC</span>
+                  <span className="inline-flex items-center gap-2 font-semibold text-zinc-300">
+                    <LucideLock size={13} className="text-purple-300" aria-hidden="true" />
+                    Merchant-controlled wallet
+                  </span>
+                </div>
               </div>
+            </section>
+
+            <section className="border-y border-white/10 py-9 sm:py-11" aria-label="Platform capabilities">
+              <div className="mb-7 flex items-center justify-between gap-4">
+                <p className="text-[10px] font-bold uppercase text-zinc-500 sm:text-xs">Built for commerce operations</p>
+                <span className="hidden font-mono text-[10px] text-zinc-600 sm:inline">01 — 03</span>
+              </div>
+              <div className="grid grid-cols-1 divide-y divide-white/10 md:grid-cols-3 md:divide-x md:divide-y-0">
+                <article className="py-6 md:py-1 md:pr-7">
+                  <LucideLock size={18} className="mb-5 text-purple-300" aria-hidden="true" />
+                  <h2 className="text-base font-bold text-white">Zero Custody Risk</h2>
+                  <p className="mt-3 text-sm leading-6 text-zinc-400">Direct on-chain settlement into merchant self-custody wallets. Eliminates money transmission licensing (MTL) and custodial liability.</p>
+                </article>
+                <article className="py-6 md:px-7 md:py-1">
+                  <LucideMonitorSmartphone size={18} className="mb-5 text-purple-300" aria-hidden="true" />
+                  <h2 className="text-base font-bold text-white">Real-Time Session Engine</h2>
+                  <p className="mt-3 text-sm leading-6 text-zinc-400">Instant checkout state tracking (<span className="font-mono text-zinc-300">CREATED</span> to <span className="font-mono text-zinc-300">CONFIRMED</span>) across physical POS hardware, mobile endpoints, and web terminals.</p>
+                </article>
+                <article className="py-6 md:pl-7 md:py-1">
+                  <LucideCode2 size={18} className="mb-5 text-purple-300" aria-hidden="true" />
+                  <h2 className="text-base font-bold text-white">Multi-Branch Ledger</h2>
+                  <p className="mt-3 text-sm leading-6 text-zinc-400">Automated batch reconciliation and real-time transaction reporting for multi-store retail and enterprise chains.</p>
+                </article>
+              </div>
+            </section>
+          </main>
+
+          <footer className="flex flex-col gap-4 py-7 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
+            <span>Opayque · Solana-native merchant infrastructure</span>
+            <div className="flex items-center gap-5">
+              <Link href="/developer/overview" onClick={(event) => void handleDeveloperDashboard(event)} className="transition hover:text-white">Developer dashboard</Link>
+              <button type="button" onClick={() => void handleAccessVault()} className="transition hover:text-white">Access Vault</button>
             </div>
-
-          </div>
+          </footer>
         </div>
       )}
-
-      <footer className="absolute bottom-10 opacity-20">
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-zinc-500">Global Settlement Layer</span>
-        </div>
-      </footer>
-
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(ellipse_at_center,black,transparent)] pointer-events-none opacity-10" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-[0.035]" />
     </div>
   );
 }
