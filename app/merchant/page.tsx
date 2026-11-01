@@ -103,7 +103,10 @@ export default function MerchantDashboard() {
         const newTransactions = await Promise.all(
           newSignatures.map(async (signature) => {
             try {
-              const parsed = await connection.getParsedTransaction(signature, 'finalized');
+              const parsed = await connection.getParsedTransaction(signature, {
+                commitment: 'finalized',
+                maxSupportedTransactionVersion: 0,
+              });
               const amount = extractUsdcAmount(parsed);
               if (amount <= 0) return null;
               return {
